@@ -1,7 +1,9 @@
 package com.finflow.authservice.service;
 
+import com.finflow.authservice.dto.AuthResult;
 import com.finflow.authservice.dto.LoginRequest;
 import com.finflow.authservice.dto.RegisterRequest;
+import com.finflow.authservice.entity.RefreshToken;
 import com.finflow.authservice.entity.User;
 import com.finflow.authservice.repository.UserRepository;
 import com.finflow.authservice.security.JwtService;
@@ -17,6 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     public User register(RegisterRequest request){
         if(userRepository.existsByEmail(request.getEmail())){
@@ -31,15 +34,28 @@ public class UserService {
 
         return userRepository.save(user);
     }
-    public String login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new RuntimeException("nvalid email or password"));
+    public AuthResult login(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid email or password"));
 
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPasswordHash())) {
 
-            throw new RuntimeException(("Invalid email or password"));
+            throw new RuntimeException("Invalid email or password");
         }
-        return jwtService.generateToken(user.getEmail());
+
+        String accessToken =
+                jwtService.generateToken(user.getEmail());
+
+        RefreshToken refreshToken =
+                refreshTokenService.createRefreshToken(user);
+
+        return AuthResult.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .build();
     }
 }

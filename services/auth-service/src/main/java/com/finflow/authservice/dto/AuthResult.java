@@ -5,13 +5,8 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class LoginResponse {
+public class AuthResult {
 
     private String accessToken;
     private String refreshToken;
-    private String tokenType;
 }
-//{
-//  "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-//  "tokenType": "Bearer"
-//}

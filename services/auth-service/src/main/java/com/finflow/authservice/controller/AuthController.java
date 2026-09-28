@@ -1,10 +1,10 @@
 package com.finflow.authservice.controller;
 
-import com.finflow.authservice.dto.LoginRequest;
-import com.finflow.authservice.dto.LoginResponse;
-import com.finflow.authservice.dto.RegisterRequest;
-import com.finflow.authservice.dto.UserResponse;
+import com.finflow.authservice.dto.*;
+import com.finflow.authservice.entity.RefreshToken;
 import com.finflow.authservice.entity.User;
+import com.finflow.authservice.security.JwtService;
+import com.finflow.authservice.service.RefreshTokenService;
 import com.finflow.authservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
@@ -38,10 +40,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        String accessToken= userService.login(request);
+        AuthResult result = userService.login(request);
 
         LoginResponse response= LoginResponse.builder()
-                .accessToken(accessToken)
+                .accessToken(result.getAccessToken())
+                .refreshToken(result.getRefreshToken())
                 .tokenType("Bearer")
                 .build();
 
@@ -52,4 +55,30 @@ public class AuthController {
     public ResponseEntity<String> me() {
         return ResponseEntity.ok("Authenticated successfully");
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(
+            @RequestBody RefreshTokenRequest request) {
+
+        RefreshToken refreshToken =
+                refreshTokenService.findByToken(
+                        request.getRefreshToken()
+                );
+
+        refreshToken = refreshTokenService.verifyExpiration(refreshToken);
+
+        String accessToken =
+                jwtService.generateToken(
+                        refreshToken.getUser().getEmail()
+                );
+
+        LoginResponse response = LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .tokenType("Bearer")
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
 }
