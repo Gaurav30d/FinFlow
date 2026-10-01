@@ -3,6 +3,7 @@ package com.finflow.transactionservice.controller;
 import com.finflow.transactionservice.client.AccountClient;
 import com.finflow.transactionservice.dto.CreateTransactionRequest;
 import com.finflow.transactionservice.dto.TransactionResponse;
+import com.finflow.transactionservice.dto.TransferRequest;
 import com.finflow.transactionservice.entity.Transaction;
 import com.finflow.transactionservice.mapper.TransactionMapper;
 import com.finflow.transactionservice.service.TransactionService;
@@ -62,5 +63,26 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
+    @PostMapping("/transfer")
+    public ResponseEntity<TransactionResponse> transfer(
+            Authentication authentication,
+            @Valid @RequestBody TransferRequest request,
+            @RequestHeader("Authorization") String token) {
+
+        Long userId = (Long) authentication.getPrincipal();
+
+        Transaction transaction =
+                transactionService.transfer(
+                        userId,
+                        token,
+                        request.getReceiverAccountNumber(),
+                        request.getAmount(),
+                        request.getCurrency()
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(transactionMapper.toResponse(transaction));
+    }
 
 }

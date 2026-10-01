@@ -1,5 +1,6 @@
 package com.finflow.transactionservice.client;
 
+import com.finflow.transactionservice.dto.AccountResponse;
 import com.finflow.transactionservice.exception.InsufficientBalanceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -45,5 +46,31 @@ public class AccountClient {
                     "Insufficient balance"
             );
         }
+    }
+    public Long getReceiverUserId(
+            String token,
+            String accountNumber) {
+
+        AccountResponse response = restClient.get()
+                .uri("/accounts/by-number/{accountNumber}", accountNumber)
+                .header("Authorization", token)
+                .retrieve()
+                .body(AccountResponse.class);
+
+        return response.getUserId();
+    }
+
+    public void depositToAccount(
+            String token,
+            String accountNumber,
+            BigDecimal amount) {
+
+        restClient.post()
+                .uri("/accounts/internal/{accountNumber}/deposit", accountNumber)
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("amount", amount))
+                .retrieve()
+                .toBodilessEntity();
     }
 }
