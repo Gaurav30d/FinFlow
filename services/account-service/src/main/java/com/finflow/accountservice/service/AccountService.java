@@ -98,7 +98,7 @@ public class AccountService {
 
     @Transactional
     public Account depositToAccount(String accountNumber, BigDecimal amount) {
-        
+
         Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
@@ -108,6 +108,19 @@ public class AccountService {
 
         account.setBalance(account.getBalance().add(amount));
 
+        return accountRepository.save(account);
+    }
+
+    @Transactional
+    public Account refund(Long userId,BigDecimal amount) {
+        Account account=accountRepository.findByUserIdForUpdate(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        if(account.getStatus()!=AccountStatus.ACTIVE){
+            throw new RuntimeException("Account status not active");
+        }
+
+        account.setBalance(account.getBalance().add(amount));
         return accountRepository.save(account);
     }
 }

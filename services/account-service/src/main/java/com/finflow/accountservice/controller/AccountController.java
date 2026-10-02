@@ -114,4 +114,14 @@ public class AccountController {
 
         return ResponseEntity.ok(toResponse(account));
     }
+
+    @PostMapping("/internal/refund")
+    public ResponseEntity<AccountResponse> refund(
+            @RequestParam Long userId,
+            @Valid @RequestBody DepositRequest request) {
+
+        Account account = accountService.refund(userId, request.getAmount());
+
+        return ResponseEntity.ok(toResponse(account));
+    }
 }
