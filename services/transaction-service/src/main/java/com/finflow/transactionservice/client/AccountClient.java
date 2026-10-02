@@ -73,4 +73,21 @@ public class AccountClient {
                 .retrieve()
                 .toBodilessEntity();
     }
+
+    public void refund(
+            String token,
+            Long userId,
+            BigDecimal amount) {
+
+        restClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/accounts/internal/refund")
+                        .queryParam("userId", userId)
+                        .build())
+                .header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("amount", amount))
+                .retrieve()
+                .toBodilessEntity();
+    }
 }

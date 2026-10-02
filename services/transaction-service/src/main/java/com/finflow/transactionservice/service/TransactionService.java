@@ -72,26 +72,36 @@ public class TransactionService {
             throw new RuntimeException("Cannot transfer to your own account");
         }
 
-        // 1. Debit sender
-        accountClient.withdraw(token, amount);
-
-        // 2. Credit receiver
-        accountClient.depositToAccount(
-                token,
-                receiverAccountNumber,
-                amount
-        );
-
-        // 3. Record transaction
         Transaction transaction = Transaction.builder()
                 .transactionReference(UUID.randomUUID())
                 .userId(senderUserId)
                 .type(TransactionType.TRANSFER)
                 .amount(amount)
                 .currency(currency)
-                .status(TransactionStatus.COMPLETED)
+                .status(TransactionStatus.PENDING)
                 .createdAt(Instant.now())
                 .build();
+
+        transaction = transactionRepository.save(transaction);
+
+        accountClient.withdraw(token, amount);
+        try {
+            accountClient.depositToAccount(
+                    token,
+                    receiverAccountNumber,
+                    amount
+            );
+        } catch (Exception exception) {
+            accountClient.refund(
+                    token,
+                    senderUserId,
+                    amount
+            );
+            transaction.setStatus(TransactionStatus.FAILED);
+            transactionRepository.save(transaction);
+
+            throw exception;
+        }
 
         return transactionRepository.save(transaction);
     }
