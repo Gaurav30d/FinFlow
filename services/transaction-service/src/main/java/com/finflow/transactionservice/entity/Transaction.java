@@ -24,7 +24,16 @@ public class Transaction {
     private UUID transactionReference;
 
     @Column(nullable = false)
-    private Long userId;
+    private Long senderUserId;
+
+    @Column(nullable = false)
+    private String senderAccountNumber;
+
+    @Column(nullable = false)
+    private Long receiverUserId;
+
+    @Column(nullable = false)
+    private String receiverAccountNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

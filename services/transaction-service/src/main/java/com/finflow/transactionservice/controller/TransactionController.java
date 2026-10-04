@@ -43,7 +43,7 @@ public class TransactionController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(transactionMapper.toResponse(transaction));
+                .body(transactionMapper.toResponse(transaction, userId));
     }
 
 
@@ -57,7 +57,12 @@ public class TransactionController {
                 transactionService
                         .getTransactionsByUserId(userId)
                         .stream()
-                        .map(transactionMapper::toResponse)
+                        .map(transaction ->
+                                transactionMapper.toResponse(
+                                        transaction,
+                                        userId
+                                )
+                        )
                         .toList();
 
         return ResponseEntity.ok(transactions);
@@ -82,7 +87,7 @@ public class TransactionController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(transactionMapper.toResponse(transaction));
+                .body(transactionMapper.toResponse(transaction,userId));
     }
 
 }

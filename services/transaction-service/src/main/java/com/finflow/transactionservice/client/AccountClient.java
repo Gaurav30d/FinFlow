@@ -2,6 +2,7 @@ package com.finflow.transactionservice.client;
 
 import com.finflow.transactionservice.dto.AccountResponse;
 import com.finflow.transactionservice.exception.InsufficientBalanceException;
+import com.finflow.transactionservice.security.InternalTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import java.util.Map;
 public class AccountClient {
 
     private final RestClient restClient;
+    private final InternalTokenService internalTokenService;
 
     public void deposit(String token, BigDecimal amount) {
 
@@ -61,13 +63,14 @@ public class AccountClient {
     }
 
     public void depositToAccount(
-            String token,
             String accountNumber,
             BigDecimal amount) {
 
+        String internalToken=internalTokenService.generateToken();
+
         restClient.post()
                 .uri("/accounts/internal/{accountNumber}/deposit", accountNumber)
-                .header("Authorization", token)
+                .header("Authorization", "Bearer "+ internalToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("amount", amount))
                 .retrieve()
@@ -75,19 +78,28 @@ public class AccountClient {
     }
 
     public void refund(
-            String token,
             Long userId,
             BigDecimal amount) {
+        String internalToken=internalTokenService.generateToken();
 
         restClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/accounts/internal/refund")
                         .queryParam("userId", userId)
                         .build())
-                .header("Authorization", token)
+                .header("Authorization", "Bearer "+ internalToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("amount", amount))
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    public AccountResponse getMyAccount(String token) {
+
+        return restClient.get()
+                .uri("/accounts/me")
+                .header("Authorization", token)
+                .retrieve()
+                .body(AccountResponse.class);
     }
 }

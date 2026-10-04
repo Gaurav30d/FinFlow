@@ -1,13 +1,11 @@
 package com.finflow.transactionservice.service;
 
 import com.finflow.transactionservice.client.AccountClient;
+import com.finflow.transactionservice.dto.AccountResponse;
 import com.finflow.transactionservice.entity.Transaction;
 import com.finflow.transactionservice.entity.TransactionStatus;
 import com.finflow.transactionservice.entity.TransactionType;
 import com.finflow.transactionservice.repository.TransactionRepository;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,25 +28,29 @@ public class TransactionService {
             String token,
             TransactionType type,
             BigDecimal amount,
-            String currency
-            ) {
+            String currency) {
+
+        AccountResponse account = accountClient.getMyAccount(token);
 
         if (type == TransactionType.DEPOSIT) {
             accountClient.deposit(token, amount);
-        }else if(type==TransactionType.WITHDRAW) {
+
+        } else if (type == TransactionType.WITHDRAW) {
             accountClient.withdraw(token, amount);
         }
 
         Transaction transaction = Transaction.builder()
                 .transactionReference(UUID.randomUUID())
-                .userId(userId)
+                .senderUserId(userId)
+                .senderAccountNumber(account.getAccountNumber())
+                .receiverUserId(userId)
+                .receiverAccountNumber(account.getAccountNumber())
                 .type(type)
                 .amount(amount)
                 .currency(currency)
                 .status(TransactionStatus.COMPLETED)
                 .createdAt(Instant.now())
                 .build();
-
         return transactionRepository.save(transaction);
     }
 
@@ -65,8 +67,9 @@ public class TransactionService {
             BigDecimal amount,
             String currency) {
 
-        Long receiverUserId =
-                accountClient.getReceiverUserId(token,receiverAccountNumber);
+        AccountResponse senderAccount= accountClient.getMyAccount(token);
+
+        Long receiverUserId=accountClient.getReceiverUserId(token, receiverAccountNumber);
 
         if (senderUserId.equals(receiverUserId)) {
             throw new RuntimeException("Cannot transfer to your own account");
@@ -74,7 +77,10 @@ public class TransactionService {
 
         Transaction transaction = Transaction.builder()
                 .transactionReference(UUID.randomUUID())
-                .userId(senderUserId)
+                .senderUserId(senderUserId)
+                .senderAccountNumber(senderAccount.getAccountNumber())
+                .receiverUserId(receiverUserId)
+                .receiverAccountNumber(receiverAccountNumber)
                 .type(TransactionType.TRANSFER)
                 .amount(amount)
                 .currency(currency)
@@ -83,25 +89,42 @@ public class TransactionService {
                 .build();
 
         transaction = transactionRepository.save(transaction);
-
         accountClient.withdraw(token, amount);
+
         try {
             accountClient.depositToAccount(
-                    token,
                     receiverAccountNumber,
                     amount
             );
         } catch (Exception exception) {
-            accountClient.refund(
-                    token,
-                    senderUserId,
-                    amount
-            );
-            transaction.setStatus(TransactionStatus.FAILED);
-            transactionRepository.save(transaction);
+
+            // 7. Compensate sender
+            try {
+
+                accountClient.refund(
+                        senderUserId,
+                        amount
+                );
+
+                transaction.setStatus(TransactionStatus.FAILED);
+                transactionRepository.save(transaction);
+
+            } catch (Exception compensationException) {
+
+                /*
+                 * Money was debited but compensation failed.
+                 * Keep transaction PENDING so it can be recovered later.
+                 */
+                transactionRepository.save(transaction);
+
+                throw compensationException;
+            }
 
             throw exception;
         }
+
+        // 8. Transfer completed
+        transaction.setStatus(TransactionStatus.COMPLETED);
 
         return transactionRepository.save(transaction);
     }

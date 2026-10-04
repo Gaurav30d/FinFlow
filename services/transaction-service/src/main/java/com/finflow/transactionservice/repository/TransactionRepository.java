@@ -2,6 +2,8 @@ package com.finflow.transactionservice.repository;
 
 import com.finflow.transactionservice.entity.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,5 +13,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     Optional<Transaction> findByTransactionReference(UUID transactionReference);
 
-    List<Transaction> findByUserIdOrderByCreatedAtDesc(Long userId);
+    @Query("""
+        SELECT t
+        FROM Transaction t
+        WHERE t.senderUserId = :userId
+           OR t.receiverUserId = :userId
+        ORDER BY t.createdAt DESC
+        """)
+    List<Transaction> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
 }

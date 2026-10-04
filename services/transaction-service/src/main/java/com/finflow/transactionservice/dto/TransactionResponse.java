@@ -13,12 +13,19 @@ import java.util.UUID;
 @Builder
 public class TransactionResponse {
 
-    private Long id;
     private UUID transactionReference;
-    private Long userId;
+
     private TransactionType type;
+
+    private String direction;
+
     private BigDecimal amount;
+
     private String currency;
+
+    private String counterpartyAccount;
+
     private TransactionStatus status;
+
     private Instant createdAt;
 }
