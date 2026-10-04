@@ -1,5 +1,6 @@
 package com.finflow.accountservice.config;
 
+import com.finflow.accountservice.security.InternalJwtAuthenticationFilter;
 import com.finflow.accountservice.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -12,15 +13,33 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtAuthenticationFilter  jwtAuthenticationFilter;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final InternalJwtAuthenticationFilter internalJwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth->auth
-                        .anyRequest().authenticated()
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/accounts/internal/**")
+                        .hasRole("SERVICE")
+                        .anyRequest()
+                        .authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+                .addFilterBefore(
+                        internalJwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
+
         return http.build();
     }
 }

@@ -64,14 +64,12 @@ public class AuthController {
                 refreshTokenService.findByToken(
                         request.getRefreshToken()
                 );
-
         refreshToken = refreshTokenService.verifyExpiration(refreshToken);
 
         String accessToken =
                 jwtService.generateToken(
-                        refreshToken.getUser().getEmail()
+                        refreshToken.getUser()
                 );
-
         LoginResponse response = LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.getToken())

@@ -48,7 +48,7 @@ public class UserService {
         }
 
         String accessToken =
-                jwtService.generateToken(user.getEmail());
+                jwtService.generateToken(user);
 
         RefreshToken refreshToken =
                 refreshTokenService.createRefreshToken(user);

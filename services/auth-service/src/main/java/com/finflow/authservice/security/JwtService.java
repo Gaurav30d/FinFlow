@@ -1,5 +1,6 @@
 package com.finflow.authservice.security;
 
+import com.finflow.authservice.entity.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,12 +25,15 @@ public class JwtService {
         this.expiration = expiration;
     }
 
-    public String generateToken(String email){
+    public String generateToken(User user) {
+
         Date now = new Date();
-        Date expiry=new Date(now.getTime() + expiration);
+        Date expiry = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
-                .subject(email)
+                .subject(user.getEmail())
+                .claim("userId", user.getId())
+                .claim("role", user.getRole().name())
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey)
