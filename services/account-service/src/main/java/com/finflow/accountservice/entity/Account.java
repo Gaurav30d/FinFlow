@@ -7,7 +7,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "accounts", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_accounts_user_id", columnNames = "user_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,7 +24,7 @@ public class Account {
     @Column(nullable = false, unique = true, length = 16)
     private String accountNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long userId;
 
     @Column(nullable = false, precision = 19, scale = 2)

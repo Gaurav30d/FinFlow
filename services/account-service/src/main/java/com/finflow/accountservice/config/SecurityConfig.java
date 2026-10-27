@@ -26,6 +26,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/accounts/internal/**")
                         .hasRole("SERVICE")
+                        .requestMatchers("/error", "/actuator/**")
+                        .permitAll()
                         .anyRequest()
                         .authenticated()
                 )

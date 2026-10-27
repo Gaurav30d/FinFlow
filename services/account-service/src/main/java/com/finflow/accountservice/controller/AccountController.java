@@ -34,9 +34,19 @@ public class AccountController {
 
     @GetMapping("/{accountId}")
     public ResponseEntity<AccountResponse> getAccount(
-            @PathVariable Long accountId) {
+            @PathVariable Long accountId,
+            Authentication authentication) {
 
-        Account account = accountService.getAccount(accountId);
+        boolean isService = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_SERVICE".equals(a.getAuthority()));
+
+        Account account;
+        if (isService) {
+            account = accountService.getAccount(accountId);
+        } else {
+            Long userId = (Long) authentication.getPrincipal();
+            account = accountService.getAccount(accountId, userId);
+        }
 
         return ResponseEntity.ok(toResponse(account));
     }
