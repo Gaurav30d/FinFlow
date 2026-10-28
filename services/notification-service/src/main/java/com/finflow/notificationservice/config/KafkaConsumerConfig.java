@@ -2,13 +2,21 @@ package com.finflow.notificationservice.config;
 
 import com.finflow.notificationservice.event.TransactionCompletedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
+import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,52 +24,81 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
+    private String bootstrapServers;
+
+    @Value("${spring.kafka.consumer.group-id:finflow-notification-group}")
+    private String groupId;
+
     @Bean
-    public ConsumerFactory<String, TransactionCompletedEvent>
-    consumerFactory() {
+    public ConsumerFactory<String, TransactionCompletedEvent> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
-        config.put(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                "localhost:9092"
-        );
-
-        config.put(
-                ConsumerConfig.GROUP_ID_CONFIG,
-                "finflow-notification-group"
-        );
-
-        config.put(
-                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-                "earliest"
-        );
-
-        config.put(
-                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
-                false
-        );
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         return new DefaultKafkaConsumerFactory<>(
                 config,
                 new StringDeserializer(),
-                new JacksonJsonDeserializer<>(
-                        TransactionCompletedEvent.class,
-                        false
+                new ErrorHandlingDeserializer<>(
+                        new JacksonJsonDeserializer<>(
+                                TransactionCompletedEvent.class,
+                                false
+                        )
                 )
         );
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<
-            String, TransactionCompletedEvent>
-    kafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, TransactionCompletedEvent>
+    kafkaListenerContainerFactory(DefaultErrorHandler kafkaErrorHandler) {
 
-        ConcurrentKafkaListenerContainerFactory<
-                String, TransactionCompletedEvent> factory =
+        ConcurrentKafkaListenerContainerFactory<String, TransactionCompletedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
+        factory.setCommonErrorHandler(kafkaErrorHandler);
 
         return factory;
+    }
+
+    @Bean
+    public DefaultErrorHandler kafkaErrorHandler(
+            KafkaTemplate<String, Object> dltKafkaTemplate) {
+
+        DeadLetterPublishingRecoverer recoverer =
+                new DeadLetterPublishingRecoverer(
+                        dltKafkaTemplate,
+                        (record, exception) -> new TopicPartition(
+                                record.topic() + ".DLT",
+                                record.partition()
+                        )
+                );
+
+        // Initial attempt + 2 retries with 1-second intervals
+        return new DefaultErrorHandler(
+                recoverer,
+                new FixedBackOff(1000L, 2L)
+        );
+    }
+
+    @Bean
+    public ProducerFactory<String, Object> dltProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+
+        return new DefaultKafkaProducerFactory<>(
+                config,
+                new StringSerializer(),
+                new JacksonJsonSerializer<>()
+        );
+    }
+
+    @Bean
+    public KafkaTemplate<String, Object> dltKafkaTemplate(
+            ProducerFactory<String, Object> dltProducerFactory) {
+        return new KafkaTemplate<>(dltProducerFactory);
     }
 }
