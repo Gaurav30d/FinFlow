@@ -1,13 +1,15 @@
 package com.finflow.transactionservice.client;
 
 import com.finflow.transactionservice.dto.AccountResponse;
+import com.finflow.transactionservice.exception.BadRequestException;
 import com.finflow.transactionservice.exception.InsufficientBalanceException;
+import com.finflow.transactionservice.exception.InvalidRecipientException;
 import com.finflow.transactionservice.security.InternalTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -20,7 +22,6 @@ public class AccountClient {
     private final InternalTokenService internalTokenService;
 
     public void deposit(String token, BigDecimal amount) {
-
         restClient.post()
                 .uri("/accounts/me/deposit")
                 .header("Authorization", token)
@@ -31,9 +32,7 @@ public class AccountClient {
     }
 
     public void withdraw(String token, BigDecimal amount) {
-
         try {
-
             restClient.post()
                     .uri("/accounts/me/withdraw")
                     .header("Authorization", token)
@@ -41,53 +40,66 @@ public class AccountClient {
                     .body(Map.of("amount", amount))
                     .retrieve()
                     .toBodilessEntity();
-
         } catch (HttpClientErrorException.BadRequest exception) {
-
-            throw new InsufficientBalanceException(
-                    "Insufficient balance"
-            );
+            throw new InsufficientBalanceException("Insufficient balance");
         }
     }
+
     public Long getReceiverUserId(
             String token,
             String accountNumber) {
 
-        AccountResponse response = restClient.get()
-                .uri("/accounts/by-number/{accountNumber}", accountNumber)
-                .header("Authorization", token)
-                .retrieve()
-                .body(AccountResponse.class);
+        try {
+            AccountResponse response = restClient.get()
+                    .uri("/accounts/by-number/{accountNumber}", accountNumber)
+                    .header("Authorization", token)
+                    .retrieve()
+                    .body(AccountResponse.class);
 
-        return response.getUserId();
+            if (response == null || response.getUserId() == null) {
+                throw new InvalidRecipientException("Recipient account not found: " + accountNumber);
+            }
+            return response.getUserId();
+        } catch (HttpClientErrorException.NotFound exception) {
+            throw new InvalidRecipientException("Recipient account not found: " + accountNumber);
+        } catch (HttpClientErrorException.BadRequest exception) {
+            throw new BadRequestException("Invalid recipient account: " + accountNumber);
+        }
     }
 
     public void depositToAccount(
             String accountNumber,
             BigDecimal amount) {
 
-        String internalToken=internalTokenService.generateToken();
+        String internalToken = internalTokenService.generateToken();
 
-        restClient.post()
-                .uri("/accounts/internal/{accountNumber}/deposit", accountNumber)
-                .header("Authorization", "Bearer "+ internalToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("amount", amount))
-                .retrieve()
-                .toBodilessEntity();
+        try {
+            restClient.post()
+                    .uri("/accounts/internal/{accountNumber}/deposit", accountNumber)
+                    .header("Authorization", "Bearer " + internalToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("amount", amount))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException.NotFound exception) {
+            throw new InvalidRecipientException("Recipient account not found: " + accountNumber);
+        } catch (HttpClientErrorException.BadRequest exception) {
+            throw new BadRequestException("Failed to deposit to recipient account: " + accountNumber);
+        }
     }
 
     public void refund(
             Long userId,
             BigDecimal amount) {
-        String internalToken=internalTokenService.generateToken();
+
+        String internalToken = internalTokenService.generateToken();
 
         restClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/accounts/internal/refund")
                         .queryParam("userId", userId)
                         .build())
-                .header("Authorization", "Bearer "+ internalToken)
+                .header("Authorization", "Bearer " + internalToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("amount", amount))
                 .retrieve()
@@ -95,11 +107,14 @@ public class AccountClient {
     }
 
     public AccountResponse getMyAccount(String token) {
-
-        return restClient.get()
-                .uri("/accounts/me")
-                .header("Authorization", token)
-                .retrieve()
-                .body(AccountResponse.class);
+        try {
+            return restClient.get()
+                    .uri("/accounts/me")
+                    .header("Authorization", token)
+                    .retrieve()
+                    .body(AccountResponse.class);
+        } catch (HttpClientErrorException.NotFound exception) {
+            throw new BadRequestException("Sender account not found for authenticated user");
+        }
     }
 }

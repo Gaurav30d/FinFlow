@@ -21,4 +21,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         ORDER BY t.createdAt DESC
         """)
     List<Transaction> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
+
+    @Query("""
+        SELECT t
+        FROM Transaction t
+        WHERE (t.senderUserId = :userId OR t.receiverUserId = :userId)
+          AND t.status = :status
+        ORDER BY t.createdAt DESC
+        """)
+    List<Transaction> findByUserIdAndStatusOrderByCreatedAtDesc(
+            @Param("userId") Long userId,
+            @Param("status") com.finflow.transactionservice.entity.TransactionStatus status
+    );
 }

@@ -1,10 +1,9 @@
 package com.finflow.transactionservice.controller;
 
-import com.finflow.transactionservice.client.AccountClient;
 import com.finflow.transactionservice.dto.CreateTransactionRequest;
 import com.finflow.transactionservice.dto.TransactionResponse;
+import com.finflow.transactionservice.dto.TransactionResult;
 import com.finflow.transactionservice.dto.TransferRequest;
-import com.finflow.transactionservice.entity.Transaction;
 import com.finflow.transactionservice.mapper.TransactionMapper;
 import com.finflow.transactionservice.service.TransactionService;
 import jakarta.validation.Valid;
@@ -13,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import com.finflow.transactionservice.dto.DepositRequest;
 
 import java.util.List;
 
@@ -24,28 +22,32 @@ public class TransactionController {
 
     private final TransactionService transactionService;
     private final TransactionMapper transactionMapper;
-    private final AccountClient accountClient;
+
     @PostMapping
-    public ResponseEntity<TransactionResponse> createTransaction(Authentication authentication,
+    public ResponseEntity<TransactionResponse> createTransaction(
+            Authentication authentication,
             @RequestHeader("Authorization") String token,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody CreateTransactionRequest request) {
 
         Long userId = (Long) authentication.getPrincipal();
 
-        Transaction transaction =
+        TransactionResult result =
                 transactionService.createTransaction(
                         userId,
                         token,
+                        idempotencyKey,
                         request.getType(),
                         request.getAmount(),
                         request.getCurrency()
                 );
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(transactionMapper.toResponse(transaction, userId));
-    }
+        HttpStatus status = result.replayed() ? HttpStatus.OK : HttpStatus.CREATED;
 
+        return ResponseEntity
+                .status(status)
+                .body(transactionMapper.toResponse(result.transaction(), userId));
+    }
 
     @GetMapping("/me")
     public ResponseEntity<List<TransactionResponse>> getMyTransactions(
@@ -71,23 +73,26 @@ public class TransactionController {
     @PostMapping("/transfer")
     public ResponseEntity<TransactionResponse> transfer(
             Authentication authentication,
-            @Valid @RequestBody TransferRequest request,
-            @RequestHeader("Authorization") String token) {
+            @RequestHeader("Authorization") String token,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody TransferRequest request) {
 
         Long userId = (Long) authentication.getPrincipal();
 
-        Transaction transaction =
+        TransactionResult result =
                 transactionService.transfer(
                         userId,
                         token,
+                        idempotencyKey,
                         request.getReceiverAccountNumber(),
                         request.getAmount(),
                         request.getCurrency()
                 );
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(transactionMapper.toResponse(transaction,userId));
-    }
+        HttpStatus status = result.replayed() ? HttpStatus.OK : HttpStatus.CREATED;
 
+        return ResponseEntity
+                .status(status)
+                .body(transactionMapper.toResponse(result.transaction(), userId));
+    }
 }
