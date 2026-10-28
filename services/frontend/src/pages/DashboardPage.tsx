@@ -16,6 +16,7 @@ import { CashFlowChart } from '../components/CashFlowChart';
 import { RecentTransactionsList } from '../components/RecentTransactionsList';
 import { AiInsightsCard } from '../components/AiInsightsCard';
 import { formatRelativeDate } from '../utils/formatters';
+import { DoodleSparkle, DoodleGrowth } from '../components/Doodles';
 
 interface LayoutContextType {
   onOpenTransfer: () => void;
@@ -126,11 +127,16 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       {/* Top Greeting and Date Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
-            {greeting}, {user?.name || user?.username || 'Member'}
-          </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 relative">
+        <div className="relative">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+              {greeting}, {user?.name || user?.username || 'Member'}
+            </h1>
+            <div className="hidden sm:inline-block animate-float-medium pointer-events-none">
+              <DoodleSparkle size={22} className="text-amber-500/80 dark:text-amber-400/70" />
+            </div>
+          </div>
           <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
             <Calendar className="w-4 h-4" />
             <span>{todayStr}</span>
@@ -146,14 +152,14 @@ export const DashboardPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={onOpenTransfer}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-xs transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-xs transition-all active:scale-95 hover-lift"
           >
             <ArrowUpRight className="w-4 h-4" />
             <span>Send Money</span>
           </button>
           <button
             onClick={onOpenDeposit}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-xs font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-xs font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 transition-all active:scale-95 hover-lift"
           >
             <ArrowDownRight className="w-4 h-4 text-emerald-500" />
             <span>Add Funds</span>

@@ -11,12 +11,12 @@ import {
   EyeOff,
   CheckCircle2,
   Sparkles,
-  ShieldCheck,
-  Send
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useToast } from '../context/ToastContext';
+import { DoodleSparkle, FloatingCardBadge } from '../components/Doodles';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -59,9 +59,23 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen flex bg-neutral-50 dark:bg-[#0a0d14] text-neutral-900 dark:text-neutral-100 transition-colors duration-200">
       {/* Left side: Customer-Oriented Showcase */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#0b101d] via-[#101729] to-[#141f36] text-white p-12 flex-col justify-between overflow-hidden">
-        {/* Ambient lighting */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Ambient lighting with smooth floating motion */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl pointer-events-none animate-float-drift" />
+        <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none animate-float-slow" />
+
+        {/* Floating security badge */}
+        <div className="absolute bottom-28 right-12 z-20 hidden xl:block">
+          <FloatingCardBadge
+            title="Encrypted Banking"
+            subtitle="256-bit cryptographic security"
+            delayClass="animate-float-medium"
+            icon={
+              <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                <Shield className="w-4 h-4" />
+              </div>
+            }
+          />
+        </div>
 
         {/* Brand header */}
         <div className="relative z-10 flex items-center gap-3">
@@ -85,9 +99,14 @@ export const LoginPage: React.FC = () => {
             <span>Welcome Back</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-            Your money, always within reach.
-          </h2>
+          <div className="relative">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+              Your money, always within reach.
+            </h2>
+            <div className="absolute -top-6 -right-6 pointer-events-none animate-float-fast">
+              <DoodleSparkle size={24} className="text-amber-400/60" />
+            </div>
+          </div>
 
           <p className="text-sm text-neutral-300 leading-relaxed">
             Sign in to check your account balance, send money instantly, track your recent expenses, and receive personalized spending guidance.

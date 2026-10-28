@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenTransferModal }) => {
         <button
           onClick={onOpenTransferModal}
           type="button"
-          className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+          className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm shadow-md shadow-blue-600/20 active:scale-[0.98] hover-lift transition-all flex items-center justify-center gap-2 group"
         >
           <Send className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           <span>Send Money</span>

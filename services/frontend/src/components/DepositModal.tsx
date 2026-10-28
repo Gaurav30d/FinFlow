@@ -185,7 +185,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
                           key={val}
                           type="button"
                           onClick={() => setAmount(val.toString())}
-                          className={`py-1.5 px-2 text-xs font-semibold rounded-lg border transition-all ${
+                          className={`py-1.5 px-2 text-xs font-semibold rounded-lg border transition-all hover-lift active-press ${
                             amount === val.toString()
                               ? 'bg-emerald-600 text-white border-emerald-600'
                               : 'bg-neutral-50 dark:bg-neutral-800/60 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'
@@ -201,7 +201,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-medium rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                      className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-medium rounded-xl transition-all shadow-sm hover-lift active-press flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>

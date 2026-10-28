@@ -13,6 +13,7 @@ import {
 import { Account } from '../types';
 import { formatCurrency, maskAccountNumber } from '../utils/formatters';
 import { useToast } from '../context/ToastContext';
+import { DoodleSparkle, DoodleCoin } from './Doodles';
 
 interface BalanceCardProps {
   account: Account | null;
@@ -44,10 +45,18 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   const balance = account?.balance ?? 0;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#0c121e] via-[#10192b] to-[#15233c] text-white shadow-xl border border-white/10">
-      {/* Background glow effects */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none -ml-20 -mb-20" />
+    <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#0c121e] via-[#10192b] to-[#15233c] text-white shadow-xl border border-white/10 hover-lift">
+      {/* Background glow effects with smooth floating animation */}
+      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20 animate-float-drift" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none -ml-20 -mb-20 animate-float-slow" />
+
+      {/* Decorative hand-drawn doodles */}
+      <div className="absolute top-4 right-28 pointer-events-none hidden sm:block animate-float-medium">
+        <DoodleSparkle size={20} className="text-amber-400/50" />
+      </div>
+      <div className="absolute bottom-6 right-8 pointer-events-none hidden sm:block animate-float-fast opacity-40">
+        <DoodleCoin size={26} className="text-blue-300/40" />
+      </div>
 
       {/* Top row: Label, Account Number, Eye toggle */}
       <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">

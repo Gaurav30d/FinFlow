@@ -14,10 +14,17 @@ import {
   TrendingUp,
   Clock,
   Eye,
-  HelpCircle,
   Smartphone
 } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
+import {
+  DoodleSparkle,
+  DoodleStar,
+  DoodleArrow,
+  DoodleUnderline,
+  DoodleCoin,
+  FloatingCardBadge,
+} from '../components/Doodles';
 
 export const LandingPage: React.FC = () => {
   return (
@@ -95,8 +102,13 @@ export const LandingPage: React.FC = () => {
                 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-neutral-900 dark:text-white leading-[1.12]"
               >
                 Your money. Your goals. <br />
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                  One smarter place.
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                    One smarter place.
+                  </span>
+                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-48 pointer-events-none">
+                    <DoodleUnderline width={190} height={12} className="text-blue-500/70 dark:text-blue-400/60" />
+                  </div>
                 </span>
               </motion.h1>
 
@@ -110,27 +122,34 @@ export const LandingPage: React.FC = () => {
                 Manage your money, make transfers, track your spending, and understand your financial habits with FinFlow.
               </motion.p>
 
-              {/* CTAs */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
-              >
-                <Link
-                  to="/register"
-                  className="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-base shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 group active:scale-95"
+              {/* CTAs with hand-drawn arrow */}
+              <div className="relative inline-block">
+                <div className="hidden lg:block absolute -left-16 -top-2 animate-float-slow pointer-events-none">
+                  <DoodleArrow direction="down-right" width={52} height={38} className="text-blue-500/70 dark:text-blue-400/60" />
+                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 block -rotate-6 ml-2 font-mono">Instant setup</span>
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
                 >
-                  <span>Open an Account</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="w-full sm:w-auto px-7 py-3.5 bg-white dark:bg-[#121620] hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 font-semibold rounded-xl text-base transition-all flex items-center justify-center active:scale-95 shadow-xs"
-                >
-                  Sign In to Account
-                </Link>
-              </motion.div>
+                  <Link
+                    to="/register"
+                    className="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-base shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 group active:scale-95 hover-lift"
+                  >
+                    <span>Open an Account</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="w-full sm:w-auto px-7 py-3.5 bg-white dark:bg-[#121620] hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 font-semibold rounded-xl text-base transition-all flex items-center justify-center active:scale-95 shadow-xs hover-lift"
+                  >
+                    Sign In to Account
+                  </Link>
+                </motion.div>
+              </div>
 
               {/* Trust Badges */}
               <motion.div
@@ -154,13 +173,51 @@ export const LandingPage: React.FC = () => {
               </motion.div>
             </div>
 
-            {/* Interactive Illustrative Account Preview Mockup */}
+            {/* Interactive Illustrative Account Preview Mockup with Floating Accents */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="mt-14 max-w-4xl mx-auto"
+              className="mt-16 max-w-4xl mx-auto relative"
             >
+              {/* Floating Badges & Sketched Doodles around Mockup */}
+              <div className="hidden lg:block absolute -top-6 -left-8 z-20">
+                <FloatingCardBadge
+                  title="+₹25,000.00"
+                  subtitle="Instant transfer received"
+                  delayClass="animate-float-slow"
+                  icon={
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                      <ArrowDownLeft className="w-4 h-4" />
+                    </div>
+                  }
+                />
+              </div>
+
+              <div className="hidden lg:block absolute -bottom-6 -right-6 z-20">
+                <FloatingCardBadge
+                  title="Smart AI Advisor"
+                  subtitle="Spending pace: healthy"
+                  delayClass="animate-float-medium"
+                  icon={
+                    <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                  }
+                />
+              </div>
+
+              {/* Hand-drawn whimsical doodles */}
+              <div className="hidden sm:block absolute -top-8 right-12 z-10 animate-float-fast">
+                <DoodleSparkle size={28} className="text-amber-500/70 dark:text-amber-400/60" />
+              </div>
+              <div className="hidden sm:block absolute top-1/2 -right-8 z-10 animate-float-drift">
+                <DoodleCoin size={30} className="text-amber-500/60 dark:text-amber-400/50" />
+              </div>
+              <div className="hidden sm:block absolute -bottom-8 left-14 z-10 animate-float-slow">
+                <DoodleStar size={22} className="text-blue-500/60 dark:text-blue-400/50" />
+              </div>
+
               <div className="relative rounded-3xl p-1 bg-gradient-to-b from-blue-500/20 via-indigo-500/10 to-transparent shadow-2xl">
                 <div className="rounded-[22px] bg-white dark:bg-[#10141e] border border-neutral-200 dark:border-neutral-800 overflow-hidden p-6 sm:p-8">
                   {/* Mockup Header Note */}

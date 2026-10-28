@@ -11,12 +11,15 @@ import {
   CheckCircle2,
   Sparkles,
   Eye,
-  EyeOff
+  EyeOff,
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
 import { authApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useToast } from '../context/ToastContext';
+import { DoodleSparkle, DoodleCoin, FloatingCardBadge } from '../components/Doodles';
 
 export const RegisterPage: React.FC = () => {
   const { login } = useAuth();
@@ -81,8 +84,29 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-screen flex bg-neutral-50 dark:bg-[#0a0d14] text-neutral-900 dark:text-neutral-100 transition-colors duration-200">
       {/* Left side: Customer-Oriented Showcase */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#0b101d] via-[#101729] to-[#141f36] text-white p-12 flex-col justify-between overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Animated ambient backdrop glows */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl pointer-events-none animate-float-slow" />
+        <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none animate-float-drift" />
+
+        {/* Decorative Doodles */}
+        <DoodleSparkle className="top-16 right-16 text-blue-400/40 w-7 h-7 animate-float-medium" />
+        <DoodleCoin className="bottom-28 left-12 text-amber-400/30 w-8 h-8 animate-float-slow" />
+        <DoodleSparkle className="bottom-48 right-12 text-indigo-400/30 w-5 h-5 animate-float-fast" />
+
+        {/* Floating cards */}
+        <FloatingCardBadge
+          icon={<ShieldCheck className="w-4 h-4 text-emerald-400" />}
+          title="Bank-Grade Security"
+          subtitle="256-bit AES encryption"
+          className="top-24 right-10 animate-float-medium hidden xl:flex z-10"
+        />
+
+        <FloatingCardBadge
+          icon={<Zap className="w-4 h-4 text-amber-400" />}
+          title="Instant Onboarding"
+          subtitle="Ready in 2 minutes"
+          className="bottom-24 right-8 animate-float-slow hidden xl:flex z-10"
+        />
 
         <div className="relative z-10 flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2.5">
@@ -282,7 +306,7 @@ export const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-600/20 hover-lift active-press flex items-center justify-center gap-2 mt-2"
             >
               {isLoading ? (
                 <>

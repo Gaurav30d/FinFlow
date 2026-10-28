@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { transactionsApi, generateIdempotencyKey } from '../api/client';
 import { formatCurrency, maskAccountNumber } from '../utils/formatters';
 import { useToast } from '../context/ToastContext';
+import { DoodleSparkle, DoodleGrowth, DoodleArrow } from '../components/Doodles';
 
 export const TransfersPage: React.FC = () => {
   const { account, refreshAccount } = useAuth();
@@ -92,11 +93,14 @@ export const TransfersPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-4xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-4xl mx-auto relative">
+      {/* Subtle header doodle accent */}
+      <DoodleSparkle className="top-1 right-4 text-blue-500/30 w-6 h-6 animate-float-slow hidden sm:block" />
+
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
-          Send Money
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2">
+          <span>Send Money</span>
         </h1>
         <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           Send money directly to any FinFlow account holder with instant confirmation.
@@ -106,7 +110,7 @@ export const TransfersPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Main Transfer Form / Wizard */}
         <div className="md:col-span-8">
-          <div className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#121620] border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm">
+          <div className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#121620] border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm relative overflow-hidden">
             {error && (
               <div className="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-400 text-xs sm:text-sm flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
@@ -195,7 +199,7 @@ export const TransfersPage: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-600/20 hover-lift active-press flex items-center justify-center gap-2"
                 >
                   <span>Review Transfer Details</span>
                   <ArrowRight className="w-4 h-4" />
@@ -205,7 +209,8 @@ export const TransfersPage: React.FC = () => {
 
             {step === 'review' && (
               <div className="space-y-6">
-                <div className="text-center pb-4 border-b border-neutral-100 dark:border-neutral-800">
+                <div className="text-center pb-4 border-b border-neutral-100 dark:border-neutral-800 relative">
+                  <DoodleArrow className="w-8 h-8 text-blue-500/30 absolute right-6 top-0 hidden sm:block animate-float-medium" />
                   <span className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold">
                     You are sending
                   </span>
@@ -247,7 +252,7 @@ export const TransfersPage: React.FC = () => {
                     type="button"
                     onClick={() => setStep('input')}
                     disabled={isLoading}
-                    className="flex-1 py-3 px-4 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 font-medium rounded-xl transition-all"
+                    className="flex-1 py-3 px-4 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 font-medium rounded-xl transition-all hover-lift active-press"
                   >
                     Back to Edit
                   </button>
@@ -255,7 +260,7 @@ export const TransfersPage: React.FC = () => {
                     type="button"
                     onClick={handleExecuteTransfer}
                     disabled={isLoading}
-                    className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-600/20 hover-lift active-press flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
                       <>
@@ -274,8 +279,11 @@ export const TransfersPage: React.FC = () => {
             )}
 
             {step === 'success' && (
-              <div className="text-center py-6 space-y-5">
-                <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border border-emerald-200 dark:border-emerald-800">
+              <div className="text-center py-6 space-y-5 relative">
+                <DoodleSparkle className="top-2 left-10 text-emerald-500/40 w-6 h-6 animate-float-slow" />
+                <DoodleGrowth className="top-4 right-10 text-blue-500/40 w-12 h-6 animate-float-medium" />
+
+                <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border border-emerald-200 dark:border-emerald-800 shadow-sm animate-scale-in">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <div>
@@ -301,7 +309,7 @@ export const TransfersPage: React.FC = () => {
 
                 <button
                   onClick={handleReset}
-                  className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-sm"
+                  className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-sm hover-lift active-press"
                 >
                   Make Another Transfer
                 </button>
@@ -312,7 +320,7 @@ export const TransfersPage: React.FC = () => {
 
         {/* Sidebar Help & Information */}
         <div className="md:col-span-4 space-y-4">
-          <div className="p-5 rounded-2xl bg-white dark:bg-[#121620] border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm space-y-3">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#121620] border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm space-y-3 hover-lift">
             <div className="flex items-center gap-2 text-neutral-900 dark:text-white font-semibold text-sm">
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
               <span>Duplicate Transfer Protection</span>
@@ -322,7 +330,7 @@ export const TransfersPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 text-xs text-blue-900 dark:text-blue-300 space-y-2">
+          <div className="p-5 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 text-xs text-blue-900 dark:text-blue-300 space-y-2 hover-lift">
             <div className="flex items-center gap-1.5 font-semibold">
               <Info className="w-4 h-4 text-blue-500" />
               <span>Instant Availability</span>
