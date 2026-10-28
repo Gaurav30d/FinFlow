@@ -1,7 +1,7 @@
 # FinFlow
 
 **FinFlow** is an AI-powered digital banking and financial transaction platform built on a microservices architecture. It enables users to manage accounts, execute secure deposits, withdrawals, and peer-to-peer transfers, while providing intelligent spending insights and budgeting guidance grounded in real transaction data.
-
+**Preview**:https://fin-flow-nu-eight.vercel.app/
 ---
 
 ## Tech Stack
@@ -207,3 +207,4 @@ npm run dev
 - **Frontend Web UI**: [http://localhost:5173](http://localhost:5173)
 - **API Gateway**: [http://localhost:8080](http://localhost:8080)
 - **Eureka Service Registry**: [http://localhost:8761](http://localhost:8761)
+- **Preview**: [https://fin-flow-nu-eight.vercel.app/](https://fin-flow-nu-eight.vercel.app/)
