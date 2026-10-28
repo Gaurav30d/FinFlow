@@ -7,11 +7,18 @@ import com.finflow.authservice.entity.RefreshToken;
 import com.finflow.authservice.entity.User;
 import com.finflow.authservice.repository.UserRepository;
 import com.finflow.authservice.security.JwtService;
+import com.finflow.authservice.event.AuthEventProducer;
+import com.finflow.authservice.event.AuthSecurityEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.finflow.authservice.entity.Role;
 
+import java.time.Instant;
+import java.util.UUID;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -20,9 +27,11 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final AuthEventProducer authEventProducer;
 
     public User register(RegisterRequest request){
         if(userRepository.existsByEmail(request.getEmail())){
+            publishSecurityEvent("USER_REGISTER_FAILURE", null, "USER", null, "FAILURE");
             throw new RuntimeException("Email already exists");
         }
 
@@ -32,30 +41,54 @@ public class UserService {
                 .role(Role.CUSTOMER)
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        publishSecurityEvent("USER_REGISTER_SUCCESS", savedUser.getId(), "USER", String.valueOf(savedUser.getId()), "SUCCESS");
+
+        return savedUser;
     }
+
     public AuthResult login(LoginRequest request) {
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password"));
-
-        if (!passwordEncoder.matches(
-                request.getPassword(),
-                user.getPasswordHash())) {
-
+        java.util.Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+        if (userOptional.isEmpty()) {
+            publishSecurityEvent("USER_LOGIN_FAILURE", null, "USER", null, "FAILURE");
             throw new RuntimeException("Invalid email or password");
         }
 
-        String accessToken =
-                jwtService.generateToken(user);
+        User user = userOptional.get();
 
-        RefreshToken refreshToken =
-                refreshTokenService.createRefreshToken(user);
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            publishSecurityEvent("USER_LOGIN_FAILURE", null, "USER", null, "FAILURE");
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        String accessToken = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+        publishSecurityEvent("USER_LOGIN_SUCCESS", user.getId(), "USER", String.valueOf(user.getId()), "SUCCESS");
 
         return AuthResult.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.getToken())
                 .build();
+    }
+
+    private void publishSecurityEvent(String eventType, Long actorUserId, String resourceType, String resourceId, String outcome) {
+        try {
+            AuthSecurityEvent event = AuthSecurityEvent.builder()
+                    .eventId(UUID.randomUUID())
+                    .eventType(eventType)
+                    .actorUserId(actorUserId)
+                    .resourceType(resourceType)
+                    .resourceId(resourceId)
+                    .occurredAt(Instant.now())
+                    .outcome(outcome)
+                    .correlationId(null)
+                    .build();
+
+            authEventProducer.publishEvent(event);
+        } catch (Exception ex) {
+            log.error("Failed to publish {} audit event: {}", eventType, ex.getMessage());
+        }
     }
 }
